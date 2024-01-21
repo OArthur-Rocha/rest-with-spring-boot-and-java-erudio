@@ -2,19 +2,20 @@ package com.example.restwithspringbootandjavaerudio.services;
 
 import com.example.restwithspringbootandjavaerudio.controllers.PersonController;
 import com.example.restwithspringbootandjavaerudio.data.vo.v1.PersonVO;
-import com.example.restwithspringbootandjavaerudio.data.vo.v2.PersonVOV2;
+import com.example.restwithspringbootandjavaerudio.exceptions.RequiredObjectIsNullException;
 import com.example.restwithspringbootandjavaerudio.exceptions.ResourceNotFoundException;
 import com.example.restwithspringbootandjavaerudio.mapper.DozerMapper;
 import com.example.restwithspringbootandjavaerudio.mapper.custom.PersonMapper;
 import com.example.restwithspringbootandjavaerudio.model.Person;
 import com.example.restwithspringbootandjavaerudio.repositories.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.logging.Logger;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class PersonServices {
@@ -24,8 +25,6 @@ public class PersonServices {
     @Autowired
     PersonRepository repository;
 
-    @Autowired
-    PersonMapper mapper;
 
     public List<PersonVO> findAll() {
         logger.info("Finding all people");
@@ -46,6 +45,7 @@ public class PersonServices {
     }
 
     public PersonVO create(PersonVO person) {
+        if(person == null) throw new RequiredObjectIsNullException();
 
         logger.info("Creating one person!");
         var entity = DozerMapper.parseObject(person, Person.class);
@@ -63,6 +63,8 @@ public class PersonServices {
     }*/
 
     public PersonVO update(PersonVO person) {
+        if(person == null) throw new RequiredObjectIsNullException();
+
         logger.info("Updating one person.");
 
         var entity = repository.findById(person.getKey())
