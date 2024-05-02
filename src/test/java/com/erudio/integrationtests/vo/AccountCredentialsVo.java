@@ -1,8 +1,13 @@
-package com.erudio.data.vo.v1.security;
+package com.erudio.integrationtests.vo;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 import java.util.Objects;
 
+@XmlRootElement()
 public class AccountCredentialsVo implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -10,12 +15,13 @@ public class AccountCredentialsVo implements Serializable {
     private String userName;
     private String passWord;
 
-    public AccountCredentialsVo() {
-    }
-
-    public AccountCredentialsVo(String userName, String passWord) {
+    @JsonCreator
+    public AccountCredentialsVo(@JsonProperty("usarName") String userName, @JsonProperty("passWord") String passWord) {
         this.userName = userName;
         this.passWord = passWord;
+    }
+
+    public AccountCredentialsVo() {
     }
 
     public String getUserName() {

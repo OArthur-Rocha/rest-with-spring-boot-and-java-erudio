@@ -1,4 +1,4 @@
-package com.erudio.integrationtests.controller.withjson;
+package com.erudio.integrationtests.controller.withxml;
 
 import com.erudio.configs.TestConfigs;
 import com.erudio.integrationtests.testcontainers.AbstractIntegrationTest;
@@ -17,14 +17,16 @@ import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.stream.XMLStreamException;
+
 import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class PersonControllerJsonTest extends AbstractIntegrationTest {
+public class PersonControllerXmlTest extends AbstractIntegrationTest {
 
 	private static RequestSpecification specification;
 	private static ObjectMapper objectMapper;
@@ -41,13 +43,13 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest {
 
 	@Test
 	@Order(0)
-	public void Authorization() throws JsonMappingException, JsonProcessingException {
+	public void Authorization() {
 		AccountCredentialsVo user = new AccountCredentialsVo("arthur", "admin123");
 
 		var accessToken = given()
 				.basePath("/auth/signin")
 					.port(TestConfigs.SERVER_PORT)
-					.contentType(TestConfigs.CONTENT_TYPE_JSON)
+					.contentType(TestConfigs.CONTENT_TYPE_XML)
 				.body(user)
 					.when()
 				.post()
@@ -70,11 +72,12 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest {
 
 	@Test
 	@Order(1)
-	public void testCreate() throws JsonMappingException, JsonProcessingException {
+	public void testCreate() throws XMLStreamException, JsonProcessingException {
 		mockPerson();
 
 		var content = given().spec(specification)
-				.contentType(TestConfigs.CONTENT_TYPE_JSON)
+				.contentType(TestConfigs.CONTENT_TYPE_XML)
+					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_ERUDIO)
 					.body(person)
 					.when()
 					.post()
@@ -105,46 +108,32 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest {
 
 	@Test
 	@Order(2)
-	public void testUpdate() throws JsonMappingException, JsonProcessingException {
-		person.setLastName("Stallmen");
+	public void testCreateWithWrongOrigin() throws XMLStreamException {
+		mockPerson();
 
 		var content = given().spec(specification)
-				.contentType(TestConfigs.CONTENT_TYPE_JSON)
-				.body(person)
+				.contentType(TestConfigs.CONTENT_TYPE_XML)
+					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_SEMERU)
+					.body(person)
 				.when()
-				.post()
+					.post()
 				.then()
-				.statusCode(200)
-				.extract()
-				.body()
-				.asString();
+					.statusCode(403)
+						.extract()
+							.body()
+								.asString();
 
-		PersonVO persistedPerson = objectMapper.readValue(content, PersonVO.class);
-		person = persistedPerson;
-
-		assertNotNull(persistedPerson);
-
-		assertNotNull(persistedPerson.getId());
-		assertNotNull(persistedPerson.getFirstName());
-		assertNotNull(persistedPerson.getLastName());
-		assertNotNull(persistedPerson.getAddress());
-		assertNotNull(persistedPerson.getGender());
-
-		assertEquals(person.getId(), persistedPerson.getId());
-
-		assertEquals("Richard",persistedPerson.getFirstName());
-		assertEquals("Stallmen",persistedPerson.getLastName());
-		assertEquals("New York City - New York, US",persistedPerson.getAddress());
-		assertEquals("Male",persistedPerson.getGender());
+		assertNotNull(content);
+		assertEquals("Invalid CORS request",content);
 	}
 
 	@Test
 	@Order(3)
-	public void testFindById() throws JsonMappingException, JsonProcessingException {
+	public void testFindById() throws XMLStreamException, JsonProcessingException {
 		mockPerson();
 
 		var content = given().spec(specification)
-				.contentType(TestConfigs.CONTENT_TYPE_JSON)
+				.contentType(TestConfigs.CONTENT_TYPE_XML)
 					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_ERUDIO)
 					.pathParam("id", person.getId())
 					.when()
@@ -174,6 +163,26 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest {
 		assertEquals("Male", persistedPerson.getGender());
 	}
 
+	@Test
+	@Order(4)
+	public void testFindByIdWithWrongOrigin() throws XMLStreamException {
+		mockPerson();
+
+		var content = given().spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_XML)
+				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_SEMERU)
+					.pathParam("id", person.getId())
+					.when()
+					.get("{id}")
+				.then()
+					.statusCode(403)
+					.extract()
+					.body()
+						.asString();
+
+		assertNotNull(content);
+		assertEquals("Invalid CORS request",content);
+	}
 
 	private void mockPerson() {
 		person.setFirstName("Richard");
