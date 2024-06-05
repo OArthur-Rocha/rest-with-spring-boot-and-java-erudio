@@ -1,16 +1,22 @@
 package com.erudio.integrationtests.testcontainers;
 
+import com.erudio.integrationtests.controller.withjson.PersonControllerJsonTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.lifecycle.Startables;
 
 import java.util.Map;
 import java.util.stream.Stream;
 
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = {PersonControllerJsonTest.class})
 @ContextConfiguration(initializers = AbstractIntegrationTest.Initializer.class)
 public class AbstractIntegrationTest {
 
@@ -35,7 +41,7 @@ public class AbstractIntegrationTest {
             startConteiners();
             ConfigurableEnvironment environment = applicationContext.getEnvironment();
             MapPropertySource testConteiners = new MapPropertySource(
-                    "testConteiners",
+                    "testconteiners",
                     (Map) createConnectionConfiguration());
             environment.getPropertySources().addFirst(testConteiners);
         }
@@ -44,3 +50,5 @@ public class AbstractIntegrationTest {
 
     
 }
+
+
