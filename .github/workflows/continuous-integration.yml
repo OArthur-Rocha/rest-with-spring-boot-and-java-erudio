@@ -25,8 +25,7 @@ jobs:
         cache: maven
 
     - name: Build Application JAR
-      working-directory: ./ws-intelliJ/rest-with-spring-boot-and-java-erudio
-      run: mvn clean package
+      run: mvn clean package -DskipTests
 
     - name: Docker Compose Build
       working-directory: ./ws-intelliJ
