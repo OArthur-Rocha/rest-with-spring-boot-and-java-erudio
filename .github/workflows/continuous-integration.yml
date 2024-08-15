@@ -29,7 +29,7 @@ jobs:
       run: mvn clean package -DskipTests
 
     - name: Docker Compose Build
-      working-directory: ./temp/ws-intelliJ
+      working-directory: ./ws-intelliJ
       run: docker compose build
 
     - name: Push to Docker Hub Container Registry
